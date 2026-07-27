@@ -1,0 +1,7 @@
+<p>This application uses NASA's Fire Information for Resource Management System (<a href="https://firms.modaps.eosdis.nasa.gov/map/", target="blank">FIRMS</a>) to visualise the spatial and temporal evolution of the Cairngorms wildfire that started on July 15th, 2026.</p>
+
+<p>The analysis is based on three near-real-time satellite products (VIIRS:Visible Infrared Imaging Radiometer Suite), each with a resolution of approximately 375 metres. These sensors detect thermal anomalies associated with fire activity, rather than directly mapping burnt ground.</p>
+
+<p>Satellite data were obtained from the FIRMS service and aggregated on a daily basis. For each location, the maximum Fire Radiative Power (FRP: a measure of fire intensity) and the median detection confidence (not all observations are as reliable) were retained.</p>
+
+<p>To support visualisation and analysis, observations were transferred to a 100m grid. Grid cells are classified as containing fire activity where at least 50% of the FIRMS observation footprint overlaps the cell.</p>
