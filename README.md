@@ -4,4 +4,4 @@ A map viewer to explore the progression of the wildfire that started at the Ryvo
 
 The map viewer pulls from NASA's FIRMS service and is updated regularly.
 
-This is PERSONAL project and is not affiliated with any organisation. It is still in active development.
+This is a PERSONAL project and is not affiliated with any organisation. It is still in active development.
