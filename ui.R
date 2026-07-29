@@ -88,7 +88,8 @@ return new bootstrap.Tooltip(tooltipTriggerEl);
       accordion_panel(
         title = "About", 
         includeHTML("www/about.html"),
-        includeHTML("www/latest.html")
+        p("Last updated: ", LATEST)
+          #includeHTML("www/latest.html")
         ))
     ,
       
@@ -147,7 +148,7 @@ absolutePanel(
       # slider (day selector)
           sliderInput("day", "Select day",
                 min = 1,
-                max = TODAY,
+                max = as.integer(names(dates)[which(dates == LATEST)]),
                 value = 1,
                 step = 1,
                 #timeFormat="%d-%m",
