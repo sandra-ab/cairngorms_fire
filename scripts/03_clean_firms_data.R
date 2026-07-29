@@ -182,11 +182,12 @@ save(cells, fires, fire_summary, area, LATEST,
 #   LATEST = LATEST),
 #      file = "app-data/fire_data.RDS")
 
-if (nrow(gert::git_status()) > 0) {
+if (nrow(gert::git_status()) > 0){
+if ("app-data/fire_data.RData" %in% gert::git_status()$file) {
   
   git_add("app-data/fire_data.RData")  # add the file we want to update
   git_commit(paste0("Automated data update ", format(Sys.time(), "%Y %m %d %X")))
   git_push()
-  
-}
+
+}}
 
