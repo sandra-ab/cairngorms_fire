@@ -12,6 +12,7 @@
 # Raw data and set up scripts
 /prep_scripts
 /data_raw
+/old
 
 # Example code in package build process
 *-Ex.R

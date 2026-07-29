@@ -11,10 +11,30 @@
 
 
 function(input, output, session) {
+  
+
+# authentication ----------------------------------------------------------
+
+  creds <- data.frame(
+    user = Sys.getenv("FIREUSER"),
+    password = Sys.getenv("FIREPW")
+  )
+
+  # authorisation
+  res_auth <- secure_server(
+    check_credentials = check_credentials(creds)
+  )
+  
 
   ## Initialise map
   output$mymap <- renderLeaflet({
-    bgmap 
+    req(res_auth)
+    req(res_auth$user)
+    bgmap %>% 
+      
+      addLayersControl(overlayGroups = c("Fire footprint"),
+                       baseGroups = c("Topography", "Satellite", "Minimal"),
+                       options = layersControlOptions(collapsed = FALSE))
   }) 
   
 # Tracking / debugging ----------------------------------------------------------
@@ -23,16 +43,17 @@ function(input, output, session) {
 #   print(input$day)
 # })
 
-
 # Map updates -------------------------------------------------------------
 
   observe({
+    req(res_auth)
+    req(res_auth$user)
     
     if (input$view_mode == "timeline") {
 
       leafletProxy("mymap", data = fires) %>%
         clearShapes() %>% 
-        #clearControls() %>%
+        clearControls() %>%
         #removeControl("date") %>%
         # addControl(
         #   html = sprintf(
@@ -52,13 +73,20 @@ function(input, output, session) {
                       fillColor = ~styles$frp$palette(fires[[paste0("day_", isolate(input$day))]]),
                       stroke = FALSE,
                       fillOpacity = 0.8
-        )
+        ) %>%
+        
+        addLegend(pal = styles$frp$palette,
+                  values = c(0:FRPmax),
+                  title = legends[["frp"]],
+                  #group = "Fire footprint",
+                  position = "bottomright") 
       
    
     } else if (input$view_mode == "footprint") {
       
       leafletProxy("mymap", data = firefoot) %>%
-        clearShapes() %>% clearControls() %>%
+        clearShapes() %>% 
+        clearControls() %>%
 
         addPolygons(data = firefoot,
                     group = "Fire footprint",
@@ -71,12 +99,8 @@ function(input, output, session) {
         addLegend(pal = styles[[isolate(input$symbology)]]$palette,
                   values = firefoot[[isolate(input$symbology)]],
                   title = legends[[isolate(input$symbology)]],
-                  group = "Fire footprint",
-                  position = "bottomright") %>% 
-
-         addLayersControl(overlayGroups = c("Fire footprint"),
-                          baseGroups = c("Topography", "Satellite", "Minimal"),
-                          options = layersControlOptions(collapsed = FALSE))
+                  #group = "Fire footprint",
+                  position = "bottomright") 
 
       }
 
@@ -85,12 +109,15 @@ function(input, output, session) {
   
 ## Restyle map by day selected 
   observeEvent(input$day, {
+    req(res_auth)
+    req(res_auth$user)
     
     if (input$view_mode == "timeline") {
     
       # update date box on map
       leafletProxy("mymap") %>%
-        removeControl("date") %>%
+        removeControl("date") %>% 
+        #clearControls() %>%
         addControl(
           html = sprintf(
             "<div style='font-weight:bold;background:white;
@@ -127,14 +154,29 @@ function(input, output, session) {
       )
     )
     
-    message("Sending restyle")
-    }
+    # # update sparkline
+    # plotlyProxy("sparkline") %>% 
+    # plotlyProxyInvoke("deleteTraces", list(1)) %>% 
+    #   plotlyProxyInvoke(
+    #     "addTraces",
+    #     list(
+    #       x = list(input$day),
+    #       y = list(filter(area, day == input$day)$area_km2),
+    #       type = "scatter",
+    #       mode = "markers",
+    #       marker = list(size = 12, color = "#d95f02"),
+    #       showlegend = FALSE, cliponaxis = FALSE, hoverinfo = "skip"
+    #     ))
     
-  }, ignoreInit = FALSE)
+    
+    } # end timeline actions
+  }, ignoreInit = FALSE) # end day observer
    
 
 ## Restyle map by variable   
   observeEvent(input$symbology, {
+    req(res_auth)
+    req(res_auth$user)
     
     if (input$view_mode == "footprint") {
       
@@ -156,7 +198,7 @@ function(input, output, session) {
       addLegend(pal = styles[[isolate(input$symbology)]]$palette,
                 values = firefoot[[isolate(input$symbology)]],
                 title = legends[[input$symbology]],
-                group = "Fire footprint",
+                #group = "Fire footprint",
                 position = "bottomright") 
    
     }
@@ -165,11 +207,32 @@ function(input, output, session) {
   
 
 
+# Sparkline ---------------------------------------------------------------
+
+# a plotly trace that shows area affected, with a moving point for date selected
+# this just sets up the plot, and the day observer will send the proxy update
+  
+# output$sparkline <- renderPlotly({
+#   spark %>% 
+#     add_markers(
+#       x = isolate(input$day),
+#       y = filter(area, day == isolate(input$day))$area_km2,
+#       marker = list(
+#         size = 12, color = "#d95f02"),
+#       hoverinfo = "skip",
+#       cliponaxis = FALSE, 
+#       showlegend = FALSE
+#     )
+# })  
+
 # Footer information ------------------------------------------------------
 
 # These display pop-ups with text when the input is clicked at the bottom of the sidebar
   
 observeEvent(input$link_disclaim, {
+  req(res_auth)
+  req(res_auth$user)
+  
     showModal(modalDialog(title = 'Disclaimer',
                           includeHTML("www/disclaimer.html"),
                           size = 'l', 

@@ -4,7 +4,8 @@
 ### 26-07-2026                        ###
 #########################################
 
-ui <- page_sidebar(
+ui <- secure_app(
+  page_fillable(
    title = "Cairngorms Fire Explorer",
 
   ### Setup and theming -------------------------------------
@@ -27,7 +28,21 @@ Shiny.addCustomMessageHandler('restyle', function(x) {
     }
   });
 });
-")), 
+"),
+  ## add tooltip functionality for html pages             
+  HTML("
+document.addEventListener('DOMContentLoaded', function() {
+var tooltipTriggerList = [].slice.call(
+document.querySelectorAll('[data-bs-toggle=\"tooltip\"]')
+);
+tooltipTriggerList.map(function (tooltipTriggerEl) {
+return new bootstrap.Tooltip(tooltipTriggerEl);
+});
+});
+")
+               
+               
+  ), 
   
    # Theming
    theme = 
@@ -51,16 +66,24 @@ Shiny.addCustomMessageHandler('restyle', function(x) {
       color: #2f636e;
    }
   .slider-animate-button { font-size: 30pt !important; }
+  
+  .tooltip-inner {
+  background-color: #f6b338;
+  }
+  
+  .tooltiptext {
+  text-decoration:underline;
+  text-decoration-color: #f6b338;
+  }
+  
+  .accordion-button.collapsed {
+  background-color:#f6b338;
+  }
+
    ")),
 
-
-# Side bar ----------------------------------------------------------------
-
-  sidebar = sidebar(
-    width = "30%", open =TRUE,
-  
-   # ABOUT ---------------------------------------
-    accordion(open = TRUE, 
+# ABOUT ---------------------------------------
+    accordion(open = FALSE, 
               
       accordion_panel(
         title = "About", 
@@ -68,6 +91,30 @@ Shiny.addCustomMessageHandler('restyle', function(x) {
         includeHTML("www/latest.html")
         ))
     ,
+      
+# Main panel (Map) --------------------------------------------------------
+#card(
+  #full_screen = TRUE,
+  leafletOutput("mymap", width = "100%", height = "90vh"),
+#)  
+
+# Control panel ----------------------------------------------------------------
+
+absolutePanel(
+  width = "300px", 
+  left = "3%", 
+  top = "25%", 
+  draggable=TRUE,
+  class = "bg-light p-3 rounded",
+
+  tags$details( # to collapse
+    open = TRUE,
+    tags$summary(  span("Controls", style = "font-size:1.4em;"),
+                   span(
+                     icon("grip"),
+                     style = "float:right; opacity:0.6;"
+                   )),
+    br(),
     
     radioButtons(
       "view_mode",
@@ -83,11 +130,21 @@ Shiny.addCustomMessageHandler('restyle', function(x) {
     conditionalPanel(
       "input.view_mode == 'timeline'",
       
-      p("Select a day using the slider, or press play to view the evolution of the fire. The activity for the day will display according to the fire radiative power, and earlier days will appear in grey."
-        , class="warning"),
+      tags$details(
+        class = "mt-2 mb-3",
+        tags$summary(
+          " What am I seeing?",
+          style = "color:#f6b338;"
+        ),
+        p("Select a day using the slider, or press play to view the evolution of the fire. The activity for the day will display, with earlier days greyed out. NB: Some days have no activity: satellite observations are sensitive to cloud cover and smoke, overpass timing, and the intensity of the fire."
+          , class="warning")
+      ),
       
-     # textOutput("selected_date"),
+      # # sparkline just above the slider
+      # plotlyOutput("sparkline", height = "50px"),
       
+
+      # slider (day selector)
           sliderInput("day", "Select day",
                 min = 1,
                 max = TODAY,
@@ -103,8 +160,16 @@ Shiny.addCustomMessageHandler('restyle', function(x) {
     conditionalPanel(
       "input.view_mode == 'footprint'",
       
-      p("This shows the full extent of the fire zone. This does NOT all represent burned areas. They are places where at least one fire event was detected within the satellite pixel (375m), but some ground may be intact."
-        , class="warning"),
+      tags$details(
+        class = "mt-2 mb-3",
+        tags$summary(
+          " What am I seeing?",
+          style = "color:#f6b338;"
+        ),
+        p("This shows the full extent of the fire zone. This does NOT all represent burned areas. They are places where at least one fire event was detected within the satellite pixel (375m), but some ground may be intact."
+          , class="warning")
+      ),
+
       
       radioButtons(
         "symbology",
@@ -119,39 +184,15 @@ Shiny.addCustomMessageHandler('restyle', function(x) {
       # stats of habitats?
 
    ),
-   
-   
+  ) # end details
+    ), # end absolute panel
    
    ### Footer --------------------------------------
   p(actionLink('link_disclaim', 'Disclaimer')),
   p("Developed by Sandra Angers-Blondin, July 2026")
 
-  ),
+ 
   
-
-# Main panel (Map) --------------------------------------------------------
-  card(
-    #card_header("Histogram"),
-    full_screen = TRUE,
-    leafletOutput("mymap", width = "100%", height = "90vh")
-  )
-
-  # conditionalPanel(
-  #   "input.view_mode == 'timeline'",
-  #   absolutePanel(
-  #     top = 10,
-  #     left = "50%",
-  #     style = "
-  #   transform: translateX(-50%);
-  #   background: rgba(255,255,255,0.9);
-  #   padding: 8px 15px;
-  #   border-radius: 4px;
-  #   font-weight: bold;
-  #   text-align: center;
-  #   z-index: 1000;
-  # ",
-  #     textOutput("current_date")
-  #   )
-  # )
 )
 
+) # end secure app

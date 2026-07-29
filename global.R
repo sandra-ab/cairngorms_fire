@@ -14,7 +14,8 @@ library(sf)
 library(leaflet)
 library(tidyr)
 library(shinyWidgets)
-
+library(plotly)
+library(shinymanager)
 
 # Global data -------------------------------------------------------------
 
@@ -27,7 +28,8 @@ fires <- readRDS("data/fire_daily.RDS")
 # Fire data summary for full period 
 fire_summary <- readRDS("data/fire_summary.RDS")
 
-
+# Area affected for sparkline
+area <- readRDS("data/area_spark.RDS")
 
 # Date handing ------------------------------------------------------------
 
@@ -56,13 +58,16 @@ bgmap <- leaflet(options = leafletOptions(minZoom = 7, maxZoom = 16)) %>%
 
 # Palettes ----------------------------------------------------------------
 
+## max frp from daily data
+FRPmax <- max(fires[names(fires)[grepl("day_", names(fires))]], na.rm=T)
+
 styles <- list(
   
   # Fire radiative power: must start at 0 (older days) and max is the max value in data
   "frp" = list(
     variable = "frp",
     palette = colorNumeric("plasma", 
-                       domain = c(0, max(fires[names(fires)[grepl("day_", names(fires))]], na.rm=T)),  
+                       domain = c(0, FRPmax),  
                        na.color = "transparent")
     ),
   
@@ -105,3 +110,32 @@ fires <- right_join(cells, fires)
 firefoot <- right_join(cells, fire_summary)
 
 rm(fire_summary)
+
+
+# Draw sparkline ----------------------------------------------------------
+
+spark <- ggplot(area, 
+                aes(x=day, y=area_km2, group = 1 
+                    ,text = paste0("Area: ", round(area_km2,1), " km²")
+                    )) + 
+  geom_line() + 
+  #geom_point(size=2, alpha=0) +    # invisible hover targets
+  theme_void()
+
+spark <- ggplotly(spark,
+                  height=50,
+                  tooltip = c("text")) %>% 
+  layout(
+    margin = list(l = 0, r = 0, t = 0, b = 0),
+    # yaxis = list(
+    #   visible = FALSE,
+    #   fixedrange = TRUE,
+    #   range = c(0, max(area$area_km2, na.rm=T))
+    # ),
+    paper_bgcolor = "rgba(0,0,0,0)",
+    plot_bgcolor  = "rgba(0,0,0,0)") %>% 
+  config(
+    displayModeBar = FALSE
+  )
+    
+
