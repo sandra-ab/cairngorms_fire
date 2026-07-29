@@ -19,17 +19,13 @@ library(shinymanager)
 
 # Global data -------------------------------------------------------------
 
-# The 100-m grid we use to show areas on map
-cells <- readRDS("data/fire_cells.RDS")
+## Load all data the app needs
+load("app-data/fire_data.RData") # TODO load from Github instead
 
-# Fire data, summarised daily, for activity
-fires <- readRDS("data/fire_daily.RDS") 
+# dat <- load(url(
+#   "https://raw.githubusercontent.com/username/data-repo/main/app-data/fire_data.RData"
+# ))
 
-# Fire data summary for full period 
-fire_summary <- readRDS("data/fire_summary.RDS")
-
-# Area affected for sparkline
-area <- readRDS("data/area_spark.RDS")
 
 # Date handing ------------------------------------------------------------
 
@@ -43,6 +39,8 @@ dates <- setNames(
   c(1:TODAY)
 )
 
+# update days since detection
+fire_summary$timesince <- as.numeric(Sys.Date() - fire_summary$last)
 
 # Map setup ---------------------------------------------------------------
 
@@ -113,29 +111,29 @@ rm(fire_summary)
 
 
 # Draw sparkline ----------------------------------------------------------
-
-spark <- ggplot(area, 
-                aes(x=day, y=area_km2, group = 1 
-                    ,text = paste0("Area: ", round(area_km2,1), " km²")
-                    )) + 
-  geom_line() + 
-  #geom_point(size=2, alpha=0) +    # invisible hover targets
-  theme_void()
-
-spark <- ggplotly(spark,
-                  height=50,
-                  tooltip = c("text")) %>% 
-  layout(
-    margin = list(l = 0, r = 0, t = 0, b = 0),
-    # yaxis = list(
-    #   visible = FALSE,
-    #   fixedrange = TRUE,
-    #   range = c(0, max(area$area_km2, na.rm=T))
-    # ),
-    paper_bgcolor = "rgba(0,0,0,0)",
-    plot_bgcolor  = "rgba(0,0,0,0)") %>% 
-  config(
-    displayModeBar = FALSE
-  )
-    
+# 
+# spark <- ggplot(area, 
+#                 aes(x=day, y=area_km2, group = 1 
+#                     ,text = paste0("Area: ", round(area_km2,1), " km²")
+#                     )) + 
+#   geom_line() + 
+#   #geom_point(size=2, alpha=0) +    # invisible hover targets
+#   theme_void()
+# 
+# spark <- ggplotly(spark,
+#                   height=50,
+#                   tooltip = c("text")) %>% 
+#   layout(
+#     margin = list(l = 0, r = 0, t = 0, b = 0),
+#     # yaxis = list(
+#     #   visible = FALSE,
+#     #   fixedrange = TRUE,
+#     #   range = c(0, max(area$area_km2, na.rm=T))
+#     # ),
+#     paper_bgcolor = "rgba(0,0,0,0)",
+#     plot_bgcolor  = "rgba(0,0,0,0)") %>% 
+#   config(
+#     displayModeBar = FALSE
+#   )
+#     
 

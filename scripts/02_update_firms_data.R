@@ -68,3 +68,4 @@ fires <- fires %>% distinct()  # remove duplicate observations (overlaps in requ
 
 saveRDS(fires, "data_raw/firms_master.RDS")
 
+

@@ -19,6 +19,7 @@ library(dplyr)
 library(sf)
 library(mapview)
 library(tidyr)
+library(gert)  # for git updates
 
 # Parameters --------------------------------------------------------------
 
@@ -148,14 +149,45 @@ fires_footprint$conf <- factor(fires_footprint$conf, levels = c(1,2,3), labels =
 
 # Save all data ---------------------------------------------------------------
 
-# for now, saved in app; will need to be pushed to git and read from there
-saveRDS(aoi_grid %>% st_transform(4326), "data/fire_cells.RDS")
-saveRDS(fires_footprint, "data/fire_summary.RDS")
-saveRDS(fires_day, "data/fire_daily.RDS")
-saveRDS(area, "data/area_spark.RDS")
+# # for now, saved in app; will need to be pushed to git and read from there
+# saveRDS(aoi_grid %>% st_transform(4326), "data/fire_cells.RDS")
+# saveRDS(fires_footprint, "data/fire_summary.RDS")
+# saveRDS(fires_day, "data/fire_daily.RDS")
+# saveRDS(area, "data/area_spark.RDS")
+# 
+# # Save a very small metadata HTML
+# writeLines(
+#   paste0("<p><strong> Last update: </strong>", LATEST ,"</p>"),
+#   "www/latest.html"
+# )
 
-# Save a very small metadata HTML
-writeLines(
-  paste0("<p><strong> Last update: </strong>", LATEST ,"</p>"),
-  "www/latest.html"
-)
+
+
+# Push all data to GitHub -------------------------------------------------
+
+cells <- aoi_grid %>% st_transform(4326)
+fires <- fires_day
+fire_summary <- fires_footprint
+
+
+## Save to a folder that the app will read from, can load ALL data in one go
+save(cells, fires, fire_summary, area, LATEST,
+     file = "app-data/fire_data.RData") 
+
+# saveRDS(list(
+#   cells = cells, 
+#   fires = fires, 
+#   fire_summary = fire_summary, 
+#   area = area, 
+#   LATEST = LATEST),
+#      file = "app-data/fire_data.RDS")
+
+if (nrow(gert::git_status()) > 0){
+if ("app-data/fire_data.RData" %in% gert::git_status()$file) {
+  
+  git_add("app-data/fire_data.RData")  # add the file we want to update
+  git_commit(paste0("Automated data update ", format(Sys.time(), "%Y %m %d %X")))
+  git_push()
+
+}}
+

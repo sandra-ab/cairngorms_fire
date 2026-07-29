@@ -13,6 +13,7 @@
 /prep_scripts
 /data_raw
 /old
+/logs
 
 # Example code in package build process
 *-Ex.R
