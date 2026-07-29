@@ -37,6 +37,8 @@ aoi <- st_read("data_raw/fire_AOI.gpkg")
 fires <- readRDS("data_raw/firms_master.RDS")
 
 
+LATEST <- max(fires$acq_date) # latest available data
+
 # Clean up FIRMS ---------------------------------------------------------
 
 # keep relevant attributes
@@ -77,8 +79,6 @@ fires <- st_intersection(fires, aoi_grid) %>%
 fires$confidence <- factor(fires$confidence, levels = c("l", "n", "h"), labels = c(1,2,3), ordered = T) %>% as.numeric()
 
 
-LATEST <- max(fires$date) # latest available data
-
 # Daily summaries ---------------------------------------------------------
 
 # Summarise by grid cell by day
@@ -94,6 +94,13 @@ fires_day <- fires_day %>%
   mutate(day = as.numeric(date - as.Date("2026-07-15")) + 1) %>% # fire starts on day 1 (15th Jul)
   select(-conf, -date) %>% 
   complete(pixID, day = 1:(LATEST - as.Date("2026-07-15") + 1)) # add missing days (all days for all pixels)
+
+# Compute the area affected before continuing the data cleaning
+area <- fires_day %>% 
+  group_by(day) %>% 
+  summarise(npix = sum(!is.na(frp)), .groups="drop") %>% 
+  mutate(area_km2 = npix*GRIDSIZE^2 / 1e6) %>% select(-npix)
+
 
 # Recode missing to 0 when there was a detection in that pixel earlier (will be used to symbolise "older" burns)
 fires_day <- fires_day %>% 
@@ -145,6 +152,7 @@ fires_footprint$conf <- factor(fires_footprint$conf, levels = c(1,2,3), labels =
 saveRDS(aoi_grid %>% st_transform(4326), "data/fire_cells.RDS")
 saveRDS(fires_footprint, "data/fire_summary.RDS")
 saveRDS(fires_day, "data/fire_daily.RDS")
+saveRDS(area, "data/area_spark.RDS")
 
 # Save a very small metadata HTML
 writeLines(

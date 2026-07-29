@@ -8,6 +8,6 @@
 # put in your variable as
 # FIRMS_MAP_KEY = [the key here, no brackets]
 
-usethis::edit_r_environ()
+usethis::edit_r_environ(scope = c("project"))
 
 # THEN RESTART R
