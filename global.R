@@ -20,11 +20,11 @@ library(shinymanager)
 # Global data -------------------------------------------------------------
 
 ## Load all data the app needs
-load("app-data/fire_data.RData") # TODO load from Github instead
+#load("app-data/fire_data.RData") # TODO load from Github instead
 
-# dat <- load(url(
-#   "https://raw.githubusercontent.com/username/data-repo/main/app-data/fire_data.RData"
-# ))
+load(url(
+  "https://raw.githubusercontent.com/sandra-ab/cairngorms_fire/main/app-data/fire_data.RData"
+))
 
 
 # Date handing ------------------------------------------------------------
@@ -110,19 +110,34 @@ firefoot <- right_join(cells, fire_summary)
 rm(fire_summary)
 
 
+
+# Simplify habitats -------------------------------------------------------
+
+# group everything with less than 0.1 km2 together
+
+hab_areas <- hab_areas %>% 
+  mutate(habitat = case_when(
+    area_km2 < 0.1 ~ "Other",
+    TRUE ~ habitat
+  )) %>% 
+  group_by(habitat) %>% 
+  summarise(area_km2 = sum(area_km2, na.rm=T))
+
+hab_areas$habitat <- factor(hab_areas$habitat, levels = hab_areas$habitat[order(hab_areas$area_km2)], ordered=T)
+
 # Draw sparkline ----------------------------------------------------------
-# 
-# spark <- ggplot(area, 
-#                 aes(x=day, y=area_km2, group = 1 
+
+# spark <- ggplot(area,
+#                 aes(x=day, y=area_km2, group = 1
 #                     ,text = paste0("Area: ", round(area_km2,1), " km²")
-#                     )) + 
-#   geom_line() + 
+#                     )) +
+#   geom_line() +
 #   #geom_point(size=2, alpha=0) +    # invisible hover targets
 #   theme_void()
 # 
 # spark <- ggplotly(spark,
 #                   height=50,
-#                   tooltip = c("text")) %>% 
+#                   tooltip = c("text")) %>%
 #   layout(
 #     margin = list(l = 0, r = 0, t = 0, b = 0),
 #     # yaxis = list(
@@ -131,9 +146,9 @@ rm(fire_summary)
 #     #   range = c(0, max(area$area_km2, na.rm=T))
 #     # ),
 #     paper_bgcolor = "rgba(0,0,0,0)",
-#     plot_bgcolor  = "rgba(0,0,0,0)") %>% 
+#     plot_bgcolor  = "rgba(0,0,0,0)") %>%
 #   config(
 #     displayModeBar = FALSE
 #   )
-#     
+
 

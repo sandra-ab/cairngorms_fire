@@ -54,18 +54,6 @@ function(input, output, session) {
       leafletProxy("mymap", data = fires) %>%
         clearShapes() %>% 
         clearControls() %>%
-        #removeControl("date") %>%
-        # addControl(
-        #   html = sprintf(
-        #     "<div style='font-weight:bold;background:white;
-        #             padding:6px;border-radius:4px'>
-        #    %s
-        #  </div>",
-        #     unlist(dates[[isolate(input$day)]])
-        #   ),
-        #   position = "topright",
-        #   layerId = "date"
-        # ) %>%
         
         addPolygons(data = fires,
                       layerId = ~pixID,
@@ -225,6 +213,26 @@ function(input, output, session) {
 #     )
 # })  
 
+  
+
+# Habitats affected -------------------------------------------------------
+
+output$habitats <- renderPlotly({
+  
+  hab_areas$habitat <- factor(hab_areas$habitat, 
+                              levels = hab_areas$habitat[order(hab_areas$area_km2)], ordered=T)
+  
+  p <- ggplot(hab_areas, aes(x = habitat, y = area_km2)) +
+    labs(title = "Habitats affected", x = "", y = "Area (km²)") +
+    geom_col(width = 0.5, fill = "#f6b338") + 
+    coord_flip() +
+    theme_bw() 
+    
+    ggplotly(p)
+                
+  
+})  
+  
 # Footer information ------------------------------------------------------
 
 # These display pop-ups with text when the input is clicked at the bottom of the sidebar

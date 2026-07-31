@@ -39,7 +39,13 @@ tooltipTriggerList.map(function (tooltipTriggerEl) {
 return new bootstrap.Tooltip(tooltipTriggerEl);
 });
 });
-")
+"),
+  ## collapse control panel when results panel is expanded
+  HTML(
+    "document.addEventListener('shown.bs.collapse', function(e) {
+  document.getElementById('controls').removeAttribute('open');
+  });"
+  )
                
                
   ), 
@@ -99,6 +105,32 @@ return new bootstrap.Tooltip(tooltipTriggerEl);
   leafletOutput("mymap", width = "100%", height = "90vh"),
 #)  
 
+
+
+# Results drawer at bottom of map -----------------------------------------
+
+accordion(
+  id = "results",
+  open = FALSE, 
+          
+          accordion_panel(
+            title = "Statistics", 
+            p("Habitat breakdown in fire-affected area (source: Scottish Land Cover map 2024)"),
+            p("NB: this is not a measure of burned habitats"),
+            
+            fluidRow(
+              column(6, plotlyOutput("habitats")), 
+              column(6, "",
+                     )
+             
+              
+            )
+            
+
+          ))
+,
+
+
 # Control panel ----------------------------------------------------------------
 
 absolutePanel(
@@ -109,6 +141,7 @@ absolutePanel(
   class = "bg-light p-3 rounded",
 
   tags$details( # to collapse
+    id = "controls",
     open = TRUE,
     tags$summary(  span("Controls", style = "font-size:1.4em;"),
                    span(
