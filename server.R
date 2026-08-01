@@ -15,21 +15,21 @@ function(input, output, session) {
 
 # authentication ----------------------------------------------------------
 
-  creds <- data.frame(
-    user = Sys.getenv("FIREUSER"),
-    password = Sys.getenv("FIREPW")
-  )
-
-  # authorisation
-  res_auth <- secure_server(
-    check_credentials = check_credentials(creds)
-  )
+  # creds <- data.frame(
+  #   user = Sys.getenv("FIREUSER"),
+  #   password = Sys.getenv("FIREPW")
+  # )
+  # 
+  # # authorisation
+  # res_auth <- secure_server(
+  #   check_credentials = check_credentials(creds)
+  # )
   
 
   ## Initialise map
   output$mymap <- renderLeaflet({
-    req(res_auth)
-    req(res_auth$user)
+    # req(res_auth)
+    # req(res_auth$user)
     bgmap %>% 
       
       addLayersControl(overlayGroups = c("Fire footprint"),
@@ -46,8 +46,8 @@ function(input, output, session) {
 # Map updates -------------------------------------------------------------
 
   observe({
-    req(res_auth)
-    req(res_auth$user)
+    # req(res_auth)
+    # req(res_auth$user)
     
     if (input$view_mode == "timeline") {
 
@@ -97,8 +97,8 @@ function(input, output, session) {
   
 ## Restyle map by day selected 
   observeEvent(input$day, {
-    req(res_auth)
-    req(res_auth$user)
+    # req(res_auth)
+    # req(res_auth$user)
     
     if (input$view_mode == "timeline") {
     
@@ -163,8 +163,8 @@ function(input, output, session) {
 
 ## Restyle map by variable   
   observeEvent(input$symbology, {
-    req(res_auth)
-    req(res_auth$user)
+    # req(res_auth)
+    # req(res_auth$user)
     
     if (input$view_mode == "footprint") {
       
@@ -238,8 +238,8 @@ output$habitats <- renderPlotly({
 # These display pop-ups with text when the input is clicked at the bottom of the sidebar
   
 observeEvent(input$link_disclaim, {
-  req(res_auth)
-  req(res_auth$user)
+  # req(res_auth)
+  # req(res_auth$user)
   
     showModal(modalDialog(title = 'Disclaimer',
                           includeHTML("www/disclaimer.html"),

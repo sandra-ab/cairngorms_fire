@@ -4,7 +4,7 @@
 ### 26-07-2026                        ###
 #########################################
 
-ui <- secure_app(
+ui <- #secure_app(
   page_fillable(
    title = "Cairngorms Fire Explorer",
 
@@ -229,4 +229,4 @@ absolutePanel(
   
 )
 
-) # end secure app
+#) # end secure app
