@@ -21,6 +21,8 @@ library(mapview)
 library(tidyr)
 library(gert)  # for git updates
 
+source("scripts/fun_extract_lc.R") # to extract habitat coverage
+
 # Parameters --------------------------------------------------------------
 
 BUFFER = 375/2  # a VIIRS pixel is around 375m; we'll buffer (circles) by half that amount to create the "coverage" zone for an observation and transfer into our finer grid
@@ -147,6 +149,18 @@ fires_footprint$conf <- factor(fires_footprint$conf, levels = c(1,2,3), labels =
 # mapview(right_join(aoi_grid, fires_footprint), zcol = "is_current")
 
 
+# Extract habitats affected -----------------------------------------------
+
+# the resulting object is a list with:
+# $map: the raster of habitats
+# $area: affected areas (dataframe)
+habitats <- calculate_habitats(
+  right_join(aoi_grid, fires_footprint),
+  "data_raw/land_cover_2024_L2/HLCM_2024_EUNIS_LEVEL2_V2.tif"
+)
+
+
+
 # Save all data ---------------------------------------------------------------
 
 # # for now, saved in app; will need to be pushed to git and read from there
@@ -168,14 +182,15 @@ fires_footprint$conf <- factor(fires_footprint$conf, levels = c(1,2,3), labels =
 cells <- aoi_grid %>% st_transform(4326)
 fires <- fires_day
 fire_summary <- fires_footprint
-
+hab_areas <- habitats$areas
 
 ## Save to a folder that the app will read from, can load ALL data in one go
-save(cells, fires, fire_summary, area, LATEST,
+save(cells, 
+     fires, fire_summary, area, LATEST, hab_areas,
      file = "app-data/fire_data.RData") 
 
 # saveRDS(list(
-#   cells = cells, 
+#   cells = cells %>% st_transform(4326), 
 #   fires = fires, 
 #   fire_summary = fire_summary, 
 #   area = area, 
